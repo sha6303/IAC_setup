@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Create an RDS database and an EC2 instance for Airflow
+
+Parameters:
+  DBName:
+    Type: String
+    Default: MyDatabase
+    Description: The name of the database
+  DBUsername:
+    Type: String
+    Default: admin
+    Description: The master username for the database
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Description: The master password for the database
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    Description: EC2 instance type for Airflow
+
+Resources:
+  RDSDatabase:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 20
+      DBInstanceClass: db.t2.micro
+      Engine: mysql
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DBName: !Ref DBName
+      PubliclyAccessible: false
+
+  AirflowInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      SecurityGroups:
+        - !Ref AirflowSecurityGroup
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash -xe
+          yum update -y
+          yum install -y aws-cli
+          aws s3 cp s3://your-airflow-scripts-bucket/airflow_setup.sh /tmp/airflow_setup.sh
+          chmod +x /tmp/airflow_setup.sh
+          /tmp/airflow_setup.sh
+
+  AirflowSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH and HTTP access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+  RDSEndpoint:
+    Description: The endpoint of the RDS instance
+    Value: !GetAtt RDSDatabase.Endpoint.Address
+  AirflowPublicIP:
+    Description: The public IP address of the Airflow EC2 instance
+    Value: !GetAtt AirflowInstance.PublicIp
