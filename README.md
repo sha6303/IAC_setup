@@ -14,59 +14,33 @@ UserData in AirflowInstance: This section runs a script during EC2 instance init
 Outputs: Exposes the RDS endpoint and the public IP address of the Airflow EC2 instance.
 
 
+CI/CD to automatically to deploy the infrastructure or any updates
 
-
- CI/CD to automatically to deploy the infrastructure or any updates
-
- Set Up Your Infrastructure as Code (IaC) Repository:
-
+Set Up Your Infrastructure as Code (IaC) Repository:
 Create a Git repository (e.g., GitHub, CodeCommit) for your IaC templates.
 Ensure that your IaC templates (CloudFormation YAML in this case) are version-controlled in this repository.
 Create an AWS CodePipeline:
-
 Navigate to AWS CodePipeline service in the AWS Management Console.
 Click "Create pipeline" and follow the wizard to set up your pipeline.
 Configure your source provider (GitHub, CodeCommit, etc.) and select the master branch.
 Add a build stage to build your IaC templates using AWS CodeBuild.
 Add a deployment stage to deploy your infrastructure using AWS CloudFormation.
 Create an AWS CodeBuild Project:
-
-Define a buildspec.yaml file in your IaC repository to specify how AWS CodeBuild should build and package your IaC templates. Here's a sample buildspec.yaml:
-yaml
-Copy code
-version: 0.2
-phases:
-  install:
-    runtime-versions:
-      python: 3.8
-  build:
-    commands:
-      - aws cloudformation package --template-file your-template.yaml --s3-bucket your-s3-bucket --output-template-file packaged-template.yaml
-artifacts:
-  files: packaged-template.yaml
-Create an AWS CodeBuild project in the AWS CodeBuild service.
-Configure the source repository, build environment, and specify the buildspec.yaml file.
+The Code has setup in the file naming "AWS codebuild pipleine"
 Create an AWS CloudFormation Stack:
-
 In your CloudFormation template, define an AWS CloudFormation stack that will deploy your infrastructure resources.
 Configure AWS CodePipeline Deployment:
-
 In your AWS CodePipeline, the deployment stage should use the CloudFormation action.
 Specify the CloudFormation stack name and the artifact name (e.g., packaged-template.yaml).
 IAM Role and Permissions:
-
 Ensure that your AWS CodeBuild project and AWS CodePipeline have appropriate IAM roles and permissions to create/update resources using CloudFormation.
 Testing and Execution:
-
 Commit your IaC changes to the master branch of your repository.
 AWS CodePipeline will automatically trigger a build and deployment when changes are pushed to the master branch.
 Monitoring and Logging:
-
 Set up monitoring and logging to track the execution of your pipeline and any issues that may arise during deployments.
 Notifications and Alerts:
-
 Configure notifications and alerts (e.g., Amazon SNS) to be notified of pipeline failures or successful deployments.
 Testing and Validation:
-
 After deploying, validate that your infrastructure is working as expected.
 
